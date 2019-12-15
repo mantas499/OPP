@@ -88,6 +88,7 @@
             this.fireBtn.TabIndex = 5;
             this.fireBtn.Text = "FIRE!";
             this.fireBtn.UseVisualStyleBackColor = true;
+            this.fireBtn.Click += new System.EventHandler(this.fireBtn_Click);
             // 
             // joinBtn
             // 
@@ -144,6 +145,7 @@
             this.Controls.Add(this.upBtn);
             this.Name = "GameForm";
             this.Text = "GameForm";
+            this.Load += new System.EventHandler(this.GameForm_Load);
             this.ResumeLayout(false);
 
         }

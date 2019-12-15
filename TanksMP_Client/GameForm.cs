@@ -10,7 +10,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static TanksMP_Client.Form1;
+using System.Runtime.InteropServices;
+using System.IO;
 
 namespace TanksMP_Client
 {
@@ -30,6 +31,34 @@ namespace TanksMP_Client
         Graphics g = null;
         PictureBox[] playerPics = new PictureBox[50];
         PictureBox playerPic;
+        RichTextBox chatLog;
+        AbstractLogger loggerChain;
+
+        private void GameForm_Load(object sender, EventArgs e)
+        {
+            AllocConsole();
+            chatLog = gameLog;
+            loggerChain = getChainOfLoggers();
+            loggerChain.logMessage(AbstractLogger.DEBUG, "Form loaded");
+        }
+
+        private AbstractLogger getChainOfLoggers()
+        {
+            AbstractLogger errorLogger = new ErrorLogger();
+            AbstractLogger fileLogger = new FileLogger();
+            AbstractLogger consoleLogger = new ConsoleLogger();
+            AbstractLogger chatLogger = new ChatLogger(chatLog);
+
+            errorLogger.setNextLogger(fileLogger);
+            fileLogger.setNextLogger(consoleLogger);
+            consoleLogger.setNextLogger(chatLogger);
+
+            return errorLogger;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
 
         public GameForm()
         {
@@ -49,6 +78,8 @@ namespace TanksMP_Client
             timer.Interval = (10); // 0.5 secs
             timer.Tick += new EventHandler(timer_Tick);
             timer.Start();
+            loggerChain.logMessage(AbstractLogger.DEBUG, "Player joined the game");
+            loggerChain.logMessage(AbstractLogger.FILE, "Player joined the game");
         }
 
         private async void timer_Tick(object sender, EventArgs e)
@@ -95,6 +126,26 @@ namespace TanksMP_Client
                 return true;
             }
             return false;
+        }
+
+        private void fireBtn_Click(object sender, EventArgs e)
+        {
+            PictureBox bulletPic = new PictureBox
+            {
+                Location = new Point(0, 0),
+                Image = Image.FromFile("..\\..\\Images\\bullet.png"),
+                Width = mapSizeX,
+                Height = mapSizeX,
+                SizeMode = PictureBoxSizeMode.StretchImage,
+                BackColor = Color.Transparent
+            };
+            panel2.Controls.Add(bulletPic);
+            while(bulletPic.Location.X < 400)
+            {
+                gameLog.AppendText((bulletPic.Location.X).ToString() + "\n");
+                bulletPic.Location = new Point((bulletPic.Location.X + 1) * mapSizeX, bulletPic.Location.Y * mapSizeX);
+                System.Threading.Thread.Sleep(1000);
+            }
         }
 
         private async void leaveBtn_Click(object sender, EventArgs e)
@@ -1193,7 +1244,6 @@ namespace TanksMP_Client
                         }
                     }
                 }
-
             }
 
             public override void AddItems()
@@ -1216,6 +1266,94 @@ namespace TanksMP_Client
             {
 
                 throw new NotImplementedException();
+            }
+        }
+
+        /////////////////////// CHAIN OF RESPONSIBILITY ///////////////
+
+        public abstract class AbstractLogger
+        {
+            public static int INFO = 0;
+            public static int DEBUG = 1;
+            public static int FILE = 2;
+            public static int CHAT = 3;
+
+            public int type;
+            AbstractLogger nextLogger;
+            public void setNextLogger(AbstractLogger nextLogger)
+            {
+                this.nextLogger = nextLogger;
+            }
+
+            public void logMessage(int type, String message)
+            {
+                if (this.type <= type)
+                {
+                    write(message);
+                }
+                if (nextLogger != null)
+                {
+                    nextLogger.logMessage(type, message);
+                }
+            }
+
+            protected abstract void write(String message);
+        }
+
+        public class ConsoleLogger : AbstractLogger
+        {
+            public ConsoleLogger()
+            {
+                this.type = INFO;
+            }
+
+            protected override void write(string message)
+            {
+                Console.WriteLine($"INFO: {message}");
+            }
+        }
+
+        public class ErrorLogger : AbstractLogger
+        {
+            public ErrorLogger()
+            {
+                this.type = DEBUG;
+            }
+
+            protected override void write(string message)
+            {
+                Console.WriteLine($"DEBUG: {message}");
+            }
+        }
+
+        public class FileLogger : AbstractLogger
+        {
+            public FileLogger()
+            {
+                this.type = FILE;
+            }
+
+            protected override void write(string message)
+            {
+                using (StreamWriter w = File.AppendText("log.txt"))
+                {
+                    w.WriteLine(message);
+                }
+            }
+        }
+
+        public class ChatLogger : AbstractLogger
+        {
+            RichTextBox richTextBox;
+            public ChatLogger(RichTextBox richTextBox)
+            {
+                this.type = CHAT;
+                this.richTextBox = richTextBox;
+            }
+
+            protected override void write(string message)
+            {
+                richTextBox.AppendText($"{message}\n");
             }
         }
     }

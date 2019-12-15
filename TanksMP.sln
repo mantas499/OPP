@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TanksMP_Server", "TanksMP_S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TanksMP_Client", "TanksMP_Client\TanksMP_Client.csproj", "{07F2837F-1A06-46F0-AB46-F54487BAEBAE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TanksMP_Patterns", "TanksMP_Patterns\TanksMP_Patterns.csproj", "{132E945F-D7F4-4625-8F45-0F71FB7737B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TanksMP_Patterns", "TanksMP_Patterns\TanksMP_Patterns.csproj", "{132E945F-D7F4-4625-8F45-0F71FB7737B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

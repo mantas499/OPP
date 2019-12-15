@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Windows.Forms;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace TanksMP_Patterns
+namespace Patterns
 {
     public class Program
     {
@@ -574,7 +575,6 @@ namespace TanksMP_Patterns
 
     public class Player
     {
-
         private int PosX { get; set; }
         private int PosY { get; set; }
 
@@ -724,10 +724,10 @@ namespace TanksMP_Patterns
 
     public abstract class AbstractLogger
     {
-        public static int INFO = 0;
-        public static int DEBUG = 1;
-        public static int FILE = 2;
-        public static int CHAT = 3;
+        public static int Info = 0;
+        public static int Debug = 1;
+        public static int File = 2;
+        public static int Chat = 3;
 
         public int type;
         AbstractLogger nextLogger;
@@ -751,12 +751,12 @@ namespace TanksMP_Patterns
     {
         public ConsoleLogger()
         {
-            this.type = INFO;
+            this.type = Info;
         }
 
         protected override void write(string message)
         {
-            Console.WriteLine($"INFO: {message}");
+            logMessage(this.type, message);
         }
     }
 
@@ -764,12 +764,12 @@ namespace TanksMP_Patterns
     {
         public ErrorLogger()
         {
-            this.type = DEBUG;
+            this.type = Debug;
         }
 
         protected override void write(string message)
         {
-            Console.WriteLine($"DEBUG: {message}");
+            logMessage(this.type, message);
         }
     }
 
@@ -777,31 +777,25 @@ namespace TanksMP_Patterns
     {
         public FileLogger()
         {
-            this.type = FILE;
+            this.type = File;
         }
 
         protected override void write(string message)
         {
-            using (StreamWriter w = File.AppendText("log.txt"))
-            {
-                w.WriteLine(message);
-            }
+            logMessage(this.type, message);
         }
     }
 
     public class ChatLogger : AbstractLogger
     {
-        RichTextBox richTextBox;
-        public ChatLogger(RichTextBox richTextBox)
+        public ChatLogger()
         {
-            this.type = CHAT;
-            this.richTextBox = richTextBox;
+            this.type = Chat;
         }
 
         protected override void write(string message)
         {
-            richTextBox.AppendText($"{message}\n");
+            logMessage(this.type, message);
         }
     }
 }
-
